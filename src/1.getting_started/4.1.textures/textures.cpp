@@ -117,6 +117,7 @@ int main()
     }
     stbi_image_free(data);
 
+    auto compressedTexture = texture_loadDDS(FileSystem::getPath("resources/textures/textures-compressed/shannon-dxt1.dds").c_str());
 
     // render loop
     // -----------
@@ -132,7 +133,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // bind Texture
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, compressedTexture);
 
         // render container
         ourShader.use();
