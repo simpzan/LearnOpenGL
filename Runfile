@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+build.all() {
+    mkdir -p build && cd build
+    cmake ..
+    cmake --build .
+}
+
+dxt1.test() {
+    cmake --build build -t 1.getting_started__4.1.textures
+    cd ./bin/1.getting_started/
+    ./1.getting_started__4.1.textures
+}
+
+help() { echo "run, the minimalist's task runner - https://github.com/simpzan/run"; }
+.tasks() { compgen -A function | grep -v "^\."; }
+${@:-.tasks}
