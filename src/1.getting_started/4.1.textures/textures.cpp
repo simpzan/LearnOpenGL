@@ -7,6 +7,9 @@
 
 #include <iostream>
 
+#include "glsc2ext.h"
+#include "load_dds.c"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
