@@ -38,6 +38,25 @@ dxt1.test() {
     ./1.getting_started__4.1.textures
 }
 
+mesa.download() {
+    wget https://archive.mesa3d.org/mesa-21.3.4.tar.xz
+    tar xvf mesa-21.3.4.tar.xz
+}
+MESA_INSTALLDIR=`pwd`/out
+mesa.build() {
+    apt-get build-dep mesa # Debian and derivatives
+    meson setup builddir/ -Dprefix="$MESA_INSTALLDIR" -Dgallium-drivers=radeonsi -Dgallium-vdpau=false \
+        -Dvulkan-drivers=
+    ninja -C builddir/
+    sudo ninja -C builddir/ install
+}
+mesa.run() {
+    export LD_LIBRARY_PATH=$MESA_INSTALLDIR/lib/aarch64-linux-gnu/
+    _glx.env 1 1000
+    cd ../LearnOpenGL/
+    dxt1.test.vnc
+}
+
 help() { echo "run, the minimalist's task runner - https://github.com/simpzan/run"; }
 .tasks() { compgen -A function | grep -v "^\."; }
 ${@:-.tasks}
