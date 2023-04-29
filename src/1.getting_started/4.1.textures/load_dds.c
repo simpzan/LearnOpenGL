@@ -88,6 +88,8 @@ typedef unsigned int DWORD;           // 32bits little endian
   DWORD  120      reserved2;          //. unused
 */
 
+#include <string.h>
+
 GLuint texture_loadDDS(const char* path) {
   // lay out variables to be used
 	unsigned char* header;
