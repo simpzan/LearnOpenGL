@@ -1,6 +1,31 @@
 #!/bin/bash
 set -euo pipefail
 
+_glx.env() {
+    export DISPLAY=:$1
+    export XAUTHORITY=/run/user/${2}/gdm/Xauthority
+    sudo glxinfo | grep renderer
+}
+_x11vnc() {
+    sudo x11vnc -forever -loop -noxdamage -repeat -rfbauth $HOME/.vnc/passwd -rfbport 5900 -shared -auth $XAUTHORITY -display $DISPLAY
+}
+
+vnc.login() {
+    sudo systemctl start gdm
+    _glx.env 0 121
+    _x11vnc
+}
+
+vnc.desktop() {
+    _glx.env 1 1000
+    _x11vnc
+}
+
+dxt1.test.vnc() {
+    _glx.env 1 1000
+    dxt1.test
+}
+
 build.all() {
     mkdir -p build && cd build
     cmake ..
