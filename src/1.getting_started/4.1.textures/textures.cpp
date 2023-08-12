@@ -7,6 +7,7 @@
 #include <learnopengl/shader_s.h>
 
 #include <iostream>
+#include <dlfcn.h>
 
 #include "glsc2ext.h"
 #include "load_dds.c"
@@ -114,6 +115,12 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
+    dlopen("libEGL.so.1.0.0", RTLD_NOW);
+    dlopen("libGL.so.1.2.0", RTLD_NOW);
+    dlopen("/home/simpzan/mesa3d/out/lib64/dri/radeonsi_dri.so", RTLD_NOW);
+    prompt("waiting");
+
+
     // glfw window creation
     // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
@@ -131,7 +138,6 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-    prompt("waiting");
 
     // build and compile our shader zprogram
     // ------------------------------------
