@@ -87,8 +87,10 @@ typedef unsigned int DWORD;           // 32bits little endian
   DWORD  116      caps4;              //. unused
   DWORD  120      reserved2;          //. unused
 */
+#include "opengl.hpp"
 
-GLuint texture_loadDDS(const char* path) {
+
+Tex *texture_loadDDS(const char* path) {
   // lay out variables to be used
 	unsigned char* header;
 	
@@ -106,9 +108,8 @@ GLuint texture_loadDDS(const char* path) {
     unsigned int size = 0;
 
 	unsigned char* buffer = 0;
-	
-	GLuint tid = 0;
-	
+    auto tex = new Tex(GL_TEXTURE_2D, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+
   // open the DDS file for binary reading and get file size
 	FILE* f;
 	if((f = fopen(path, "rb")) == 0)
@@ -163,20 +164,7 @@ GLuint texture_loadDDS(const char* path) {
 		goto exit;
 	fread(buffer, 1, file_size, f);
 	
-  // prepare new incomplete texture
-	glGenTextures(1, &tid);
-	if(tid == 0)
-		goto exit;
-	
-  // bind the texture
-  // make it complete by specifying all needed parameters and ensuring all mipmaps are filled
-	glBindTexture(GL_TEXTURE_2D, tid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount-1); // opengl likes array length of mipmaps
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // don't forget to enable mipmaping
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	tex->setLevel(0, mipMapCount-1); // opengl likes array length of mipmaps
 	  
     // prepare some variables
 		w = width;
@@ -191,13 +179,13 @@ GLuint texture_loadDDS(const char* path) {
 				continue;
 			}
 			size = ((w+3)/4) * ((h+3)/4) * blockSize;
-			glCompressedTexImage2D(GL_TEXTURE_2D, i, format, w, h, 0, size, buffer + offset);
+			tex->compressedImage2D(i, format, w, h, size, buffer + offset);
 			offset += size;
 			w /= 2;
 			h /= 2;
 		}
-	    // discard any odd mipmaps, ensure a complete texture
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount-1);
+		tex->setLevel(0, mipMapCount-1);
+
     // unbind
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
@@ -206,5 +194,5 @@ exit:
 	free(buffer);
 	free(header);
 	fclose(f);
-	return tid;
+	return tex;
 }
