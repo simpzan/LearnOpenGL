@@ -108,10 +108,11 @@ int main() {
     };
     auto vbo = Buffer::create(GL_ARRAY_BUFFER, vertices, sizeof(vertices), GL_STATIC_DRAW);
 
-    auto vao = VertexArray::create()
-        ->attrib(0, 3, 8, 0) // position attribute
-        ->attrib(1, 3, 8, 3) // color attribute
-        ->attrib(2, 2, 8, 6); // texture coord attribute
+    VertexArray vao;
+    vao.bind()
+        .attrib(0, 3, 8, 0) // position attribute
+        .attrib(1, 3, 8, 3) // color attribute
+        .attrib(2, 2, 8, 6); // texture coord attribute
 
     unsigned int indices[] = {  
         0, 1, 3, // first triangle
@@ -130,7 +131,7 @@ int main() {
 
         tex->bind();
         ourShader->use();
-        vao->bind();
+        vao.bind();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);

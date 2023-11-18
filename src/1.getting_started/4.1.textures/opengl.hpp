@@ -64,21 +64,19 @@ public:
 class VertexArray {
 public:
     unsigned int id;
-    static VertexArray *create() {
-        VertexArray *obj = new VertexArray();
-        obj->bind();
-        return obj;
-    }
     VertexArray() { glGenVertexArrays(1, &id); }
     ~VertexArray() { glDeleteVertexArrays(1, &id); }
-    void bind() { glBindVertexArray(id); }
-    VertexArray *attrib(int index, GLint size, GLsizei stride, uint64_t pointer) {
+    VertexArray &bind() {
+        glBindVertexArray(id);
+        return *this;
+    }
+    VertexArray &attrib(int index, GLint size, GLsizei stride, uint64_t pointer) {
         auto floatSize = sizeof(float);
         stride *= floatSize;
         pointer *= floatSize;
         glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, (const GLvoid *)pointer);
         glEnableVertexAttribArray(index);
-        return this;
+        return *this;
     }
 };
 
