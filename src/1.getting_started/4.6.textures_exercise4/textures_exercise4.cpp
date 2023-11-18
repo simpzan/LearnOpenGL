@@ -3,7 +3,7 @@
 #include <stb_image.h>
 
 #include <learnopengl/filesystem.h>
-#include <learnopengl/shader_s.h>
+// #include <learnopengl/shader_s.h>
 
 #include <iostream>
 
@@ -33,6 +33,37 @@ Tex *setupTex(const char *filename, int format) {
     stbi_image_free(data);
     return tex;
 }
+
+auto vs = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTexCoord;
+
+out vec3 ourColor;
+out vec2 TexCoord;
+
+void main() {
+	gl_Position = vec4(aPos, 1.0);
+	ourColor = aColor;
+	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
+}
+)";
+auto fs = R"(
+#version 330 core
+in vec3 ourColor;
+in vec2 TexCoord;
+
+uniform float mixValue;
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+
+out vec4 FragColor;
+
+void main() {
+	FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), mixValue);
+}
+)";
 
 int main()
 {
@@ -70,7 +101,7 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader ourShader("4.5.texture.vs", "4.5.texture.fs");
+    auto ourShader = Program::create(vs, fs);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -117,11 +148,11 @@ int main()
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
-    ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
+    ourShader->use(); // don't forget to activate/use the shader before setting uniforms!
     // either set it manually like so:
-    glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
+    glUniform1i(glGetUniformLocation(ourShader->id, "texture1"), 0);
     // or set it via the texture class
-    ourShader.setInt("texture2", 1);
+    ourShader->setInt("texture2", 1);
 
 
     // render loop
@@ -144,10 +175,10 @@ int main()
         tex2->bind();
 
         // set the texture mix value in the shader
-        ourShader.setFloat("mixValue", mixValue);
+        ourShader->setFloat("mixValue", mixValue);
 
         // render container
-        ourShader.use();
+        ourShader->use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
