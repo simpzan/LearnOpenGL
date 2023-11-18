@@ -18,6 +18,12 @@ dxt1.tex2() {
     ./1.getting_started__4.6.textures_exercise4
 }
 
+model.test() {
+    cmake --build build -t 3.model_loading__1.model_loading
+    cd ./bin/3.model_loading/
+    echo "$@"
+    bash -c "$@ ./3.model_loading__1.model_loading"
+}
 
 help() { echo "run, the minimalist's task runner - https://github.com/simpzan/run"; }
 .tasks() { compgen -A function | grep -v "^\."; }
