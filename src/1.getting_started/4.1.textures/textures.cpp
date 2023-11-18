@@ -60,37 +60,62 @@ Tex *setupTex() {
     return tex;
 }
 
+class Shader {
+public:
+    unsigned int id;
+    GLenum type;
+    static Shader *create(GLenum type, const char *source) {
+        Shader *shader = new Shader(type);
+        bool ok = shader->compile(source);
+        if (ok) return shader;
+        delete shader;
+        return nullptr;
+    }
+    Shader(GLenum type) {
+        this->type = type;
+        id = glCreateShader(type);
+    }
+    ~Shader() { glDeleteShader(id); }
+    bool compile(const char *source) {
+        glShaderSource(id, 1, &source, NULL);
+        glCompileShader(id);
+        return checkCompileResult();
+    }
+private:
+    bool checkCompileResult() {
+        int success;
+        char infoLog[1024];
+        glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            glGetShaderInfoLog(id, 1024, NULL, infoLog);
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
+                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            return false;
+        }
+        return true;
+    }
+};
 class Program {
 public:
     unsigned int id;
     static Program *create(const char *vs, const char *fs) {
-        auto shader = new Program(vs, fs);
-        return shader;
+        auto vertex = Shader::create(GL_VERTEX_SHADER, vs);
+        if (!vertex) return nullptr;
+        auto fragment = Shader::create(GL_FRAGMENT_SHADER, fs);
+        if (!fragment) return nullptr;
+        auto program = new Program();
+        program->link({ vertex, fragment });
+        return program;
     }
-    Program(const char* vShaderCode, const char* fShaderCode) {
-        // 2. compile shaders
-        unsigned int vertex, fragment;
-        // vertex shader
-        vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &vShaderCode, NULL);
-        glCompileShader(vertex);
-        checkCompileErrors(vertex, "VERTEX");
-        // fragment Program
-        fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &fShaderCode, NULL);
-        glCompileShader(fragment);
-        checkCompileErrors(fragment, "FRAGMENT");
-        // shader Program
-        id = glCreateProgram();
-        glAttachShader(id, vertex);
-        glAttachShader(id, fragment);
+    Program() { id = glCreateProgram(); }
+    ~Program() { glDeleteProgram(id); }
+    bool link(std::vector<Shader *>shaders) {
+        for (auto shader: shaders) glAttachShader(id, shader->id);
         glLinkProgram(id);
-        checkCompileErrors(id, "PROGRAM");
-        // delete the shaders as they're linked into our program now and no longer necessary
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
+        return checkLinkResult();
     }
     void use() { glUseProgram(id); }
+
     void setBool(const std::string &name, bool value) const {
         glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
     }
@@ -102,22 +127,17 @@ public:
     }
 
 private:
-    void checkCompileErrors(unsigned int shader, std::string type) {
+    bool checkLinkResult() {
         int success;
         char infoLog[1024];
-        if (type != "PROGRAM") {
-            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (!success) {
-                glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-            }
-        } else {
-            glGetProgramiv(shader, GL_LINK_STATUS, &success);
-            if (!success) {
-                glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-            }
+        glGetProgramiv(id, GL_LINK_STATUS, &success);
+        if (!success) {
+            glGetProgramInfoLog(id, 1024, NULL, infoLog);
+            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << "program" << "\n"
+                    << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            return false;
         }
+        return true;
     }
 };
 
@@ -158,7 +178,7 @@ int main() {
         return -1;
     }
 
-    Program ourShader(vs, fs);
+    auto ourShader = Program::create(vs, fs);
 
     float vertices[] = {
         // positions          // colors           // texture coords
@@ -190,7 +210,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         tex->bind();
-        ourShader.use();
+        ourShader->use();
         vao->bind();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
