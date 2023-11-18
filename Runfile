@@ -12,6 +12,12 @@ dxt1.test() {
     cd ./bin/1.getting_started/
     ./1.getting_started__4.1.textures
 }
+dxt1.tex2() {
+    cmake --build build -t 1.getting_started__4.6.textures_exercise4
+    cd ./bin/1.getting_started/
+    ./1.getting_started__4.6.textures_exercise4
+}
+
 
 help() { echo "run, the minimalist's task runner - https://github.com/simpzan/run"; }
 .tasks() { compgen -A function | grep -v "^\."; }
