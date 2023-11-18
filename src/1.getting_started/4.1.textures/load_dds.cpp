@@ -90,7 +90,7 @@ typedef unsigned int DWORD;           // 32bits little endian
 #include "opengl.hpp"
 
 
-Tex *texture_loadDDS(const char* path) {
+std::unique_ptr<Tex> texture_loadDDS(const char* path) {
   // lay out variables to be used
 	unsigned char* header;
 	
@@ -108,7 +108,7 @@ Tex *texture_loadDDS(const char* path) {
     unsigned int size = 0;
 
 	unsigned char* buffer = 0;
-    auto tex = new Tex(GL_TEXTURE_2D, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+    std::unique_ptr<Tex> tex { new Tex(GL_TEXTURE_2D, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR) };
 
   // open the DDS file for binary reading and get file size
 	FILE* f;
@@ -188,11 +188,12 @@ Tex *texture_loadDDS(const char* path) {
 
     // unbind
 	glBindTexture(GL_TEXTURE_2D, 0);
+	return tex;
 	
   // easy macro to get out quick and uniform (minus like 15 lines of bulk)
 exit:
 	free(buffer);
 	free(header);
 	fclose(f);
-	return tex;
+	return nullptr;
 }

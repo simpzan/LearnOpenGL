@@ -45,19 +45,9 @@ GLFWwindow *setupWindow() {
     return window;
 }
 
-Tex *setupTex() {
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(FileSystem::getPath("resources/textures/container.jpg").c_str(), &width, &height, &nrChannels, 0);
-    if (!data) {
-        std::cout << "Failed to load texture" << std::endl;
-        return NULL;
-    }
-    auto tex = new Tex(GL_TEXTURE_2D, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-    tex->image2D(0, GL_RGB, width, height, GL_UNSIGNED_BYTE, data);
-    tex->generateMipmap();
-
-    stbi_image_free(data);
-    return tex;
+std::unique_ptr<Tex> texFromFile_(const char *filename, int format) {
+    auto file = FileSystem::getPath(filename);
+    return texFromFile(file.c_str(), format);
 }
 
 auto vs = R"(
@@ -120,7 +110,7 @@ int main() {
     };
     auto ebo = Buffer::create(GL_ELEMENT_ARRAY_BUFFER, indices, sizeof(indices), GL_STATIC_DRAW);
 
-    // auto tex = setupTex();
+    // auto tex = texFromFile_();
     auto tex = texture_loadDDS(FileSystem::getPath("resources/textures/textures-compressed/shannon-dxt1.dds").c_str());
 
     while (!glfwWindowShouldClose(window)) {

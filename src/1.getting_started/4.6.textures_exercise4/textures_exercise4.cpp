@@ -19,19 +19,9 @@ const unsigned int SCR_HEIGHT = 600;
 // stores how much we're seeing of either texture
 float mixValue = 0.2f;
 
-Tex *setupTex(const char *filename, int format) {
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(FileSystem::getPath(filename).c_str(), &width, &height, &nrChannels, 0);
-    if (!data) {
-        std::cout << "Failed to load texture" << std::endl;
-        return NULL;
-    }
-    auto tex = new Tex(GL_TEXTURE_2D, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-    tex->image2D(0, format, width, height, GL_UNSIGNED_BYTE, data);
-    tex->generateMipmap();
-
-    stbi_image_free(data);
-    return tex;
+std::unique_ptr<Tex> texFromFile_(const char *filename, int format) {
+    auto file = FileSystem::getPath(filename);
+    return texFromFile(file.c_str(), format);
 }
 
 GLFWwindow *setupWindow() {
@@ -124,9 +114,9 @@ int main() {
 
     // load and create a texture 
     // -------------------------
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    auto tex1 = setupTex("resources/textures/container.jpg", GL_RGB);
-    auto tex2 = setupTex("resources/textures/awesomeface.png", GL_RGBA);
+    // stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+    auto tex1 = texFromFile_("resources/textures/container.jpg", GL_RGB);
+    auto tex2 = texFromFile_("resources/textures/awesomeface.png", GL_RGBA);
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------

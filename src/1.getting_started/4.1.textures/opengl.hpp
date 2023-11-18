@@ -40,6 +40,20 @@ public:
     }
     virtual ~Tex() { glDeleteTextures(1, &id); TRO(); }
 };
+std::unique_ptr<Tex> texFromFile(const char *filename, int format) {
+    int width, height, nrChannels;
+    auto data = stbi_load(filename, &width, &height, &nrChannels, 0);
+    if (!data) {
+        std::cout << "Failed to load texture" << std::endl;
+        return nullptr;
+    }
+    std::unique_ptr<Tex> tex { new Tex(GL_TEXTURE_2D, GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR) };
+    tex->image2D(0, format, width, height, GL_UNSIGNED_BYTE, data);
+    tex->generateMipmap();
+
+    stbi_image_free(data);
+    return tex;
+}
 
 class Buffer {
 public:
