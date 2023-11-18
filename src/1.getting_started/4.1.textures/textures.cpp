@@ -3,8 +3,9 @@
 #include <stb_image.h>
 
 #include <learnopengl/filesystem.h>
-#include <learnopengl/shader_s.h>
+// #include <learnopengl/shader_s.h>
 
+#include <string>
 #include <iostream>
 
 #include "glsc2ext.h"
@@ -59,6 +60,95 @@ Tex *setupTex() {
     return tex;
 }
 
+class Program {
+public:
+    unsigned int id;
+    static Program *create(const char *vs, const char *fs) {
+        auto shader = new Program(vs, fs);
+        return shader;
+    }
+    Program(const char* vShaderCode, const char* fShaderCode) {
+        // 2. compile shaders
+        unsigned int vertex, fragment;
+        // vertex shader
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vShaderCode, NULL);
+        glCompileShader(vertex);
+        checkCompileErrors(vertex, "VERTEX");
+        // fragment Program
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fShaderCode, NULL);
+        glCompileShader(fragment);
+        checkCompileErrors(fragment, "FRAGMENT");
+        // shader Program
+        id = glCreateProgram();
+        glAttachShader(id, vertex);
+        glAttachShader(id, fragment);
+        glLinkProgram(id);
+        checkCompileErrors(id, "PROGRAM");
+        // delete the shaders as they're linked into our program now and no longer necessary
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+    }
+    void use() { glUseProgram(id); }
+    void setBool(const std::string &name, bool value) const {
+        glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
+    }
+    void setInt(const std::string &name, int value) const {
+        glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+    }
+    void setFloat(const std::string &name, float value) const {
+        glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+    }
+
+private:
+    void checkCompileErrors(unsigned int shader, std::string type) {
+        int success;
+        char infoLog[1024];
+        if (type != "PROGRAM") {
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+            if (!success) {
+                glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            }
+        } else {
+            glGetProgramiv(shader, GL_LINK_STATUS, &success);
+            if (!success) {
+                glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            }
+        }
+    }
+};
+
+auto vs = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTexCoord;
+
+out vec3 ourColor;
+out vec2 TexCoord;
+
+void main() {
+	gl_Position = vec4(aPos, 1.0);
+	ourColor = aColor;
+	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
+}
+)";
+auto fs = R"(
+#version 330 core
+in vec3 ourColor;
+in vec2 TexCoord;
+
+uniform sampler2D texture1;
+out vec4 FragColor;
+
+void main() {
+	FragColor = texture(texture1, TexCoord);
+}
+)";
+
 int main() {
     GLFWwindow* window = setupWindow();
     if (!window) return -1;
@@ -68,7 +158,7 @@ int main() {
         return -1;
     }
 
-    Shader ourShader("4.1.texture.vs", "4.1.texture.fs"); 
+    Program ourShader(vs, fs);
 
     float vertices[] = {
         // positions          // colors           // texture coords
