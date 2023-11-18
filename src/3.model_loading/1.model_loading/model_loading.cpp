@@ -82,7 +82,10 @@ int main()
 
     // load models
     // -----------
-    Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
+    auto path = getenv("model");
+    if (!path) path = "resources/objects/backpack/backpack.obj";
+    printf("model %s\n", path);
+    Model ourModel(FileSystem::getPath(path));
 
     
     // draw in wireframe
