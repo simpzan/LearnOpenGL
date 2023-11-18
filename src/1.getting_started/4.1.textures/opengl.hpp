@@ -139,14 +139,14 @@ public:
     }
     void use() { glUseProgram(id); }
 
-    void setBool(const std::string &name, bool value) const {
-        glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
+    void setUniform(const char *name, bool value) const {
+        glUniform1i(glGetUniformLocation(id, name), (int)value);
     }
-    void setInt(const std::string &name, int value) const {
-        glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+    void setUniform(const char *name, int value) const {
+        glUniform1i(glGetUniformLocation(id, name), value);
     }
-    void setFloat(const std::string &name, float value) const {
-        glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+    void setUniform(const char *name, float value) const {
+        glUniform1f(glGetUniformLocation(id, name), value);
     }
 
 private:

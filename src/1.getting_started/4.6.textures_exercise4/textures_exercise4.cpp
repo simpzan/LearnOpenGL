@@ -152,7 +152,7 @@ int main()
     // either set it manually like so:
     glUniform1i(glGetUniformLocation(ourShader->id, "texture1"), 0);
     // or set it via the texture class
-    ourShader->setInt("texture2", 1);
+    ourShader->setUniform("texture2", 1);
 
 
     // render loop
@@ -175,7 +175,7 @@ int main()
         tex2->bind();
 
         // set the texture mix value in the shader
-        ourShader->setFloat("mixValue", mixValue);
+        ourShader->setUniform("mixValue", mixValue);
 
         // render container
         ourShader->use();
