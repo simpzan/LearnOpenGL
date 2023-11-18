@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include "log.h"
 
 class Tex {
 public:
@@ -14,6 +15,7 @@ public:
         glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapT);
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filterMin);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filterMag);
+        TRO();
     }
     void bind() { glBindTexture(target, id); }
     virtual void image2D(int level, int format, int width, int height, int type, void *data) {
@@ -36,7 +38,7 @@ public:
         bind();
         glGenerateMipmap(target);
     }
-    virtual ~Tex() { glDeleteTextures(1, &id); }
+    virtual ~Tex() { glDeleteTextures(1, &id); TRO(); }
 };
 
 class Buffer {
@@ -52,8 +54,9 @@ public:
     Buffer(int target) {
         this->target = target;
         glGenBuffers(1, &id);
+        TRO();
     }
-    ~Buffer() { glDeleteBuffers(1, &id); }
+    ~Buffer() { glDeleteBuffers(1, &id); TRO(); }
     void bind() { glBindBuffer(target, id); }
     void data(uint64_t size, const void *data, GLenum usage) {
         bind();
@@ -64,8 +67,8 @@ public:
 class VertexArray {
 public:
     unsigned int id;
-    VertexArray() { glGenVertexArrays(1, &id); }
-    ~VertexArray() { glDeleteVertexArrays(1, &id); }
+    VertexArray() { glGenVertexArrays(1, &id); TRO(); }
+    ~VertexArray() { glDeleteVertexArrays(1, &id); TRO(); }
     VertexArray &bind() {
         glBindVertexArray(id);
         return *this;
@@ -94,8 +97,9 @@ public:
     Shader(GLenum type) {
         this->type = type;
         id = glCreateShader(type);
+        TRO();
     }
-    ~Shader() { glDeleteShader(id); }
+    ~Shader() { glDeleteShader(id); TRO(); }
     bool compile(const char *source) {
         glShaderSource(id, 1, &source, NULL);
         glCompileShader(id);
@@ -127,8 +131,8 @@ public:
         program->link({ vertex.get(), fragment.get() });
         return program;
     }
-    Program() { id = glCreateProgram(); }
-    ~Program() { glDeleteProgram(id); }
+    Program() { id = glCreateProgram(); TRO(); }
+    ~Program() { glDeleteProgram(id); TRO(); }
     bool link(std::vector<Shader *>shaders) {
         for (auto shader: shaders) glAttachShader(id, shader->id);
         glLinkProgram(id);
