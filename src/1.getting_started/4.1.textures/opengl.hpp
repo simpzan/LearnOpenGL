@@ -1,5 +1,5 @@
 #pragma once
-
+#include <memory>
 
 class Tex {
 public:
@@ -43,8 +43,8 @@ class Buffer {
 public:
     unsigned int id;
     int target;
-    static Buffer *create(int target, const void *bytes, uint64_t size, GLenum usage) {
-        Buffer *buf = new Buffer(target);
+    static std::unique_ptr<Buffer> create(int target, const void *bytes, uint64_t size, GLenum usage) {
+        std::unique_ptr<Buffer> buf { new Buffer(target) };
         buf->bind();
         buf->data(size, bytes, usage);
         return buf;
@@ -87,11 +87,10 @@ class Shader {
 public:
     unsigned int id;
     GLenum type;
-    static Shader *create(GLenum type, const char *source) {
-        Shader *shader = new Shader(type);
+    static std::unique_ptr<Shader> create(GLenum type, const char *source) {
+        std::unique_ptr<Shader> shader { new Shader(type) };
         bool ok = shader->compile(source);
         if (ok) return shader;
-        delete shader;
         return nullptr;
     }
     Shader(GLenum type) {
@@ -121,13 +120,13 @@ private:
 class Program {
 public:
     unsigned int id;
-    static Program *create(const char *vs, const char *fs) {
+    static std::unique_ptr<Program> create(const char *vs, const char *fs) {
         auto vertex = Shader::create(GL_VERTEX_SHADER, vs);
         if (!vertex) return nullptr;
         auto fragment = Shader::create(GL_FRAGMENT_SHADER, fs);
         if (!fragment) return nullptr;
-        auto program = new Program();
-        program->link({ vertex, fragment });
+        std::unique_ptr<Program> program { new Program() };
+        program->link({ vertex.get(), fragment.get() });
         return program;
     }
     Program() { id = glCreateProgram(); }
