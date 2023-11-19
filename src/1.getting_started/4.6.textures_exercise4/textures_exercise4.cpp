@@ -121,11 +121,9 @@ int main() {
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     auto ourShader = Program::create(vs, fs);
-    ourShader->use(); // don't forget to activate/use the shader before setting uniforms!
-    // either set it manually like so:
-    glUniform1i(glGetUniformLocation(ourShader->id, "texture1"), 0);
-    // or set it via the texture class
-    ourShader->setUniform("texture2", 1);
+    ourShader->use()
+        .setUniform("texture1", 0)
+        .setUniform("texture2", 1);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -139,11 +137,8 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         tex2->bind();
 
-        // set the texture mix value in the shader
-        ourShader->setUniform("mixValue", mixValue);
-
-        // render container
-        ourShader->use();
+        ourShader->use()
+            .setUniform("mixValue", mixValue);
         vao.bind();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

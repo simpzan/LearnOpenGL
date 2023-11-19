@@ -152,16 +152,22 @@ public:
         glLinkProgram(id);
         return checkLinkResult();
     }
-    void use() { glUseProgram(id); }
+    Program &use() {
+        glUseProgram(id);
+        return *this;
+    }
 
-    void setUniform(const char *name, bool value) const {
+    const Program &setUniform(const char *name, bool value) const {
         glUniform1i(glGetUniformLocation(id, name), (int)value);
+        return *this;
     }
-    void setUniform(const char *name, int value) const {
+    const Program &setUniform(const char *name, int value) const {
         glUniform1i(glGetUniformLocation(id, name), value);
+        return *this;
     }
-    void setUniform(const char *name, float value) const {
+    const Program &setUniform(const char *name, float value) const {
         glUniform1f(glGetUniformLocation(id, name), value);
+        return *this;
     }
 
 private:
